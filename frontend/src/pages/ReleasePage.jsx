@@ -128,8 +128,9 @@ function ExistingRelease({ id, navigate }) {
     });
   }
 
-  function handleSaveInfo() {
-    updateInfo({ variables: { id: release.id, additionalInfo: info || null } });
+  async function handleSaveInfo() {
+    await updateInfo({ variables: { id: release.id, additionalInfo: info || null } });
+    navigate("/");
   }
 
   function handleDelete() {

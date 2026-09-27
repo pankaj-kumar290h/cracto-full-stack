@@ -110,6 +110,31 @@ header h1 {
   vertical-align: middle;
 }
 
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.badge-planned {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.badge-ongoing {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-done {
+  background: #d1fae5;
+  color: #065f46;
+}
+
 .link-action {
   display: inline-flex;
   align-items: center;
