@@ -155,11 +155,15 @@ CREATE INDEX ON releases (created_at);
 
 - Frontend: Vercel — set `VITE_GRAPHQL_URL` to the deployed backend's
   `/graphql` URL.
-- Backend: Render/Railway (needs a long-lived process, not serverless
-  functions, for the stress-test numbers below to be meaningful) — set
-  `DATABASE_URL` to a hosted Postgres (Neon/Supabase).
+- Backend: Render (native Node service, root directory `backend/`) — set
+  `DATABASE_URL` to a hosted Postgres (Neon/Supabase). Build command:
+  `npm install`. Start command: `npm start` (this runs
+  `prisma migrate deploy` before starting the server, so schema migrations
+  apply automatically on every deploy — no manual migration step needed).
 
-Live URLs: _TODO — fill in after deploying._
+Live URLs:
+- Backend (GraphQL): https://cracto-full-stack-be.onrender.com/graphql
+- Frontend: _TODO_
 
 ## Stress test / optimization
 
