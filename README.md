@@ -19,6 +19,11 @@ checklist of steps. Built for the Cactro full-stack test.
   `done`), so it can never drift out of sync with the actual checklist state.
 - **No auth / no multi-user support**, per the spec — this is intentionally a
   single-tenant tool.
+- **Two pages, per the provided mockup**, using client-side routing
+  (`react-router-dom` — still a single-page app, no full page reloads):
+  `/` is a table of all releases with a "New release" button, `/releases/new`
+  is the create form, `/releases/:id` is the per-release checklist/detail
+  view.
 - **Optimistic UI on checkbox toggles.** `toggleStep` mutations use Apollo's
   `optimisticResponse` so checking a box updates the UI instantly instead of
   waiting on a round trip; `createRelease`/`deleteRelease` use

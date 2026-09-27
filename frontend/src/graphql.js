@@ -25,6 +25,15 @@ export const GET_RELEASES = gql`
   }
 `;
 
+export const GET_RELEASE = gql`
+  ${RELEASE_FIELDS}
+  query GetRelease($id: ID!) {
+    release(id: $id) {
+      ...ReleaseFields
+    }
+  }
+`;
+
 export const CREATE_RELEASE = gql`
   ${RELEASE_FIELDS}
   mutation CreateRelease($input: CreateReleaseInput!) {

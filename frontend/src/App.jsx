@@ -1,31 +1,21 @@
-import { useQuery } from "@apollo/client/react";
-import { GET_RELEASES } from "./graphql.js";
-import ReleaseForm from "./ReleaseForm.jsx";
-import ReleaseCard from "./ReleaseCard.jsx";
+import { Routes, Route } from "react-router-dom";
+import ReleaseListPage from "./pages/ReleaseListPage.jsx";
+import ReleasePage from "./pages/ReleasePage.jsx";
 import "./App.css";
 
 export default function App() {
-  const { data, loading, error, refetch } = useQuery(GET_RELEASES);
-
   return (
     <div className="app">
       <header>
-        <h1>Release Checklist</h1>
+        <h1>ReleaseCheck</h1>
+        <p className="subtitle">Your all-in-one release checklist tool</p>
       </header>
 
       <main>
-        <ReleaseForm onCreated={refetch} />
-
-        <section className="release-list">
-          {loading && <p>Loading releases…</p>}
-          {error && <p className="error">Failed to load: {error.message}</p>}
-          {data?.releases?.length === 0 && (
-            <p className="empty">No releases yet. Create one above.</p>
-          )}
-          {data?.releases?.map((release) => (
-            <ReleaseCard key={release.id} release={release} />
-          ))}
-        </section>
+        <Routes>
+          <Route path="/" element={<ReleaseListPage />} />
+          <Route path="/releases/:id" element={<ReleasePage />} />
+        </Routes>
       </main>
     </div>
   );
