@@ -162,7 +162,7 @@ CREATE INDEX ON releases (created_at);
   apply automatically on every deploy — no manual migration step needed).
 
 Live URLs:
-- Backend (GraphQL): https://cracto-full-stack-be.onrender.com/graphql
+- Backend (GraphQL): https://cracto-full-stack-be.onrender.com/graphql ✅ verified working
 - Frontend: _TODO_
 
 ## Stress test / optimization
