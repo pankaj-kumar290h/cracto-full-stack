@@ -1,4 +1,5 @@
 import "dotenv/config";
+import os from "os";
 import express from "express";
 import cors from "cors";
 import compression from "compression";
@@ -14,7 +15,12 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/health", (_req, res) => {
+  const cpus = os.cpus().length;
+  // Prisma's default connection_limit when none is set on DATABASE_URL.
+  const defaultPrismaPoolSize = cpus * 2 + 1;
+  res.json({ ok: true, cpus, defaultPrismaPoolSize });
+});
 
 const server = new ApolloServer({ typeDefs, resolvers });
 await server.start();
