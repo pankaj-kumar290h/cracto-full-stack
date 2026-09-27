@@ -10,6 +10,9 @@ and starts timing out at 800 concurrent connections. Adding a 2-second
 in-process cache plus gzip compression — a code-only change, no
 infrastructure upgrade — raised the clean, error-free ceiling from ~100–200
 concurrent users to ~500, at 2–3x the throughput and 40–55% lower latency.
+Re-run twice against production to confirm the result holds up (see
+"Reproducibility note" below) — exact numbers vary run to run on the
+shared free-tier host, but the shape of the result is consistent.
 
 ## Environment
 
@@ -89,6 +92,11 @@ No infrastructure change — same free-tier instance, same database plan.
 
 ## Round 2 — after optimization
 
+Run twice, a few days apart, against the same production URL, to check the
+numbers are reproducible and not a one-off fluke.
+
+### Round 2a (first run)
+
 | Connections | Median latency | p99 latency | Throughput (avg req/s) | Errors |
 |---|---|---|---|---|
 | 50  | 275 ms | 1,108 ms | ~144 | 0 |
@@ -99,17 +107,39 @@ No infrastructure change — same free-tier instance, same database plan.
 | 650 | 374 ms | 9,230 ms | ~375 | 44 timeouts + 108 non-2xx / ~5,000 (~3%) |
 | 800 | 994 ms | 4,953 ms | ~290 | 562 timeouts / ~6,000 (~9.4%) |
 
+### Round 2b (re-run, raw output in `backend/stress/results/round3-*.txt`)
+
+| Connections | Median latency | p99 latency | Throughput (avg req/s) | Errors |
+|---|---|---|---|---|
+| 50  | 258 ms | 2,757 ms | ~127 | 0 |
+| 100 | 392 ms | 1,249 ms | ~220 | 0 |
+| 200 | 748 ms | 2,564 ms | ~239 | 0 (1 non-2xx / 2,392) |
+| 400 | 1,508 ms | 2,772 ms | ~258 | 0 (1 non-2xx / 3,864) |
+| 500 | 2,014 ms | 4,869 ms | ~222 | **0** |
+| 650 | 420 ms | 9,046 ms | ~367 | 164 timeouts + 113 non-2xx / ~4,700 (~5.9%) |
+| 800 | 603 ms | 6,666 ms | ~365 | 488 timeouts + 443 non-2xx / ~5,960 (~15.6%) |
+
+**Reproducibility note:** the shape of the result is stable across both
+runs — throughput up 2–3x over round 1 at every matched level, zero errors
+through 500 concurrent, real degradation past 650 — but the exact numbers
+vary run to run (e.g. clean throughput ~220–304 req/s at 500 connections,
+error rate at 800 ranging 9–16%). That's expected on a shared, unmanaged
+free-tier instance with no guaranteed CPU allocation — treat every number
+here as an order-of-magnitude signal, not a precise SLA. The qualitative
+conclusion (below) held in both runs.
+
 ### Analysis
 
 At every matched concurrency level up to 500, throughput is **~2–3x
-higher** and latency **40–55% lower** than round 1. The practical "usable,
-error-free" ceiling moved from roughly 100–200 concurrent users to
-**~500 concurrent users**, at 3x the throughput (~304 req/s vs ~100 req/s).
+higher** and latency **40–55% lower** than round 1, in both re-runs. The
+practical "usable, error-free" ceiling moved from roughly 100–200
+concurrent users to **~500 concurrent users**, at 2–3x the throughput
+(~220–304 req/s vs ~100 req/s).
 
 ### Honest caveat
 
 Past ~650 concurrent connections, round 2 shows *more* errors than round 1
-did at 800 (9.4% vs 2.5%). This is expected, not a regression to be hidden:
+did at 800 (9–16% across both re-runs vs round 1's 2.5%). This is expected, not a regression to be hidden:
 round 2 is doing 2–3x more real work per second (cache hits still cost CPU
 for gzip compression and JSON serialization on every response), so it
 pushes the same single-core free instance harder before it collapses. The
@@ -124,9 +154,9 @@ sooner past a point no real deployment would sustain anyway.
 | | Round 1 (naive) | Round 2 (optimized) |
 |---|---|---|
 | Clean (0-error) ceiling | ~100–200 concurrent | **~500 concurrent** |
-| Throughput at clean ceiling | ~100 req/s | **~304 req/s** |
-| Median latency at 200 concurrent | 1,803 ms | **791 ms** |
-| First real errors | 800 concurrent (~2.5%) | 650 concurrent (~3%) |
+| Throughput at clean ceiling | ~100 req/s | **~220–304 req/s** |
+| Median latency at 200 concurrent | 1,803 ms | **748–791 ms** |
+| First real errors | 800 concurrent (~2.5%) | 650 concurrent (~3–6%) |
 
 **Delta brought to the table**: ~3x usable throughput and ~55% lower
 latency at real-world load levels, achieved with a two-function,
