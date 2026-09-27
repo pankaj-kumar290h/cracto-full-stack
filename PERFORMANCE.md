@@ -22,6 +22,18 @@ concurrent users to ~500, at 2–3x the throughput and 40–55% lower latency.
   live deployed URL (not localhost) for every result below.
 - **Target operation**: `query { releases { id name status ... } }` — a
   `findMany` with no filters, ordered by `createdAt`.
+- **DB connection pool**: no `connection_limit` is set explicitly (neither
+  on `DATABASE_URL` nor on the `PrismaClient` constructor), so Prisma uses
+  its default formula, `num_physical_cpus * 2 + 1`. Checked directly
+  against the deployed instance (`GET /health` reports `cpus` and
+  `defaultPrismaPoolSize`): **`os.cpus().length` reports 8 on Render's
+  container, giving a pool size of 17** — this is almost certainly
+  inflated, since `os.cpus()` reads the host machine's total cores through
+  the container rather than the actual (much smaller) CPU share Render's
+  free tier allocates. Confirms the pool was never the limiting factor in
+  either round below: even a comfortably large pool (17) couldn't help,
+  because the real ceiling is Node's actual throttled CPU time, not
+  available DB connections.
 
 ```bash
 cd backend
