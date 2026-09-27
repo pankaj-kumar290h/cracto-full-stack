@@ -1,5 +1,9 @@
 import { prisma } from "./db.js";
 import { STEPS, STEP_KEYS, computeStatus } from "./steps.js";
+import { cacheGet, cacheSet, cacheClear } from "./cache.js";
+
+const RELEASES_CACHE_KEY = "releases";
+const RELEASES_CACHE_TTL_MS = 2000;
 
 function toGraphRelease(release) {
   const completed = new Set(release.completedSteps ?? []);
@@ -17,10 +21,15 @@ function toGraphRelease(release) {
 export const resolvers = {
   Query: {
     releases: async () => {
+      const cached = cacheGet(RELEASES_CACHE_KEY);
+      if (cached) return cached;
+
       const releases = await prisma.release.findMany({
         orderBy: { createdAt: "desc" },
       });
-      return releases.map(toGraphRelease);
+      const result = releases.map(toGraphRelease);
+      cacheSet(RELEASES_CACHE_KEY, result, RELEASES_CACHE_TTL_MS);
+      return result;
     },
     release: async (_parent, { id }) => {
       const release = await prisma.release.findUnique({ where: { id } });
@@ -39,6 +48,7 @@ export const resolvers = {
           completedSteps: [],
         },
       });
+      cacheClear();
       return toGraphRelease(release);
     },
 
@@ -57,6 +67,7 @@ export const resolvers = {
         where: { id },
         data: { completedSteps: Array.from(current) },
       });
+      cacheClear();
       return toGraphRelease(release);
     },
 
@@ -65,11 +76,13 @@ export const resolvers = {
         where: { id },
         data: { additionalInfo: additionalInfo ?? null },
       });
+      cacheClear();
       return toGraphRelease(release);
     },
 
     deleteRelease: async (_parent, { id }) => {
       await prisma.release.delete({ where: { id } });
+      cacheClear();
       return true;
     },
   },

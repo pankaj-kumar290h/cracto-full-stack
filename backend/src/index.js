@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import compression from "compression";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import { typeDefs } from "./schema.js";
@@ -10,6 +11,7 @@ const PORT = process.env.PORT || 4000;
 
 const app = express();
 app.use(cors());
+app.use(compression());
 app.use(express.json());
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
